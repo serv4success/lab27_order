@@ -1,0 +1,153 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: microservices-alerts
+  namespace: instana-demo
+  labels:
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+  - name: microservices.performance
+    interval: 30s
+    rules:
+    # High error rate alert
+    - alert: HighErrorRate
+      expr: |
+        (
+          sum(rate(orders_total{status="failed"}[5m]))
+          /
+          sum(rate(orders_total[5m]))
+        ) > 0.15
+      for: 5m
+      labels:
+        severity: warning
+        component: order-service
+      annotations:
+        summary: "High order failure rate detected"
+        description: "Order service has {{ $value | humanizePercentage }} failure rate"
+    
+    # High latency alert
+    - alert: HighOrderProcessingLatency
+      expr: |
+        histogram_quantile(0.95,
+          sum(rate(order_processing_duration_seconds_bucket[5m])) by (le)
+        ) > 2
+      for: 5m
+      labels:
+        severity: warning
+        component: order-service
+      annotations:
+        summary: "High order processing latency"
+        description: "95th percentile latency is {{ $value }}s"
+    
+    # Payment service errors
+    - alert: HighPaymentFailureRate
+      expr: |
+        (
+          sum(rate(payments_total{status="failed"}[5m]))
+          /
+          sum(rate(payments_total[5m]))
+        ) > 0.20
+      for: 5m
+      labels:
+        severity: warning
+        component: payment-service
+      annotations:
+        summary: "High payment failure rate"
+        description: "Payment service failure rate: {{ $value | humanizePercentage }}"
+    
+    # Database errors
+    - alert: DatabaseErrors
+      expr: rate(database_errors_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: critical
+        component: order-service
+      annotations:
+        summary: "Database errors detected"
+        description: "Database error rate: {{ $value }} errors/sec"
+    
+    # Active orders stuck
+    - alert: OrdersStuckProcessing
+      expr: active_orders > 10
+      for: 10m
+      labels:
+        severity: warning
+        component: order-service
+      annotations:
+        summary: "Orders stuck in processing"
+        description: "{{ $value }} orders have been processing for >10 minutes"
+    
+    # External API failures
+    - alert: ExternalGatewayFailures
+      expr: |
+        (
+          sum(rate(external_api_calls_total{status="failed"}[5m]))
+          /
+          sum(rate(external_api_calls_total[5m]))
+        ) > 0.15
+      for: 5m
+      labels:
+        severity: warning
+        component: payment-service
+      annotations:
+        summary: "External payment gateway issues"
+        description: "Gateway failure rate: {{ $value | humanizePercentage }}"
+
+  - name: microservices.availability
+    interval: 30s
+    rules:
+    # Service down
+    - alert: ServiceDown
+      expr: up{job=~"order-service|payment-service|frontend"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Service {{ $labels.job }} is down"
+        description: "Service {{ $labels.job }} on {{ $labels.instance }} is not responding"
+    
+    # Pod crash loop
+    - alert: PodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total{namespace="instana-demo"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod {{ $labels.pod }} is crash looping"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is restarting frequently"
+
+  - name: microservices.resources
+    interval: 30s
+    rules:
+    # High memory usage
+    - alert: HighMemoryUsage
+      expr: |
+        (
+          container_memory_working_set_bytes{namespace="instana-demo",container!=""}
+          /
+          container_spec_memory_limit_bytes{namespace="instana-demo",container!=""}
+        ) > 0.85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage in {{ $labels.pod }}"
+        description: "Container {{ $labels.container }} is using {{ $value | humanizePercentage }} of memory limit"
+    
+    # High CPU usage
+    - alert: HighCPUUsage
+      expr: |
+        (
+          rate(container_cpu_usage_seconds_total{namespace="instana-demo",container!=""}[5m])
+          /
+          container_spec_cpu_quota{namespace="instana-demo",container!=""} * 100000
+        ) > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage in {{ $labels.pod }}"
+        description: "Container {{ $labels.container }} is using {{ $value }}% of CPU limit"

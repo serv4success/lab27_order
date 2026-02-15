@@ -1,0 +1,235 @@
+---
+# Instana Agent Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: instana-agent
+  labels:
+    app.kubernetes.io/name: instana-agent
+
+---
+# Instana Agent Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: instana-agent
+  namespace: instana-agent
+type: Opaque
+stringData:
+  # Vervang met je eigen Instana keys
+  key: "VERVANG_MET_JE_INSTANA_AGENT_KEY"
+  downloadKey: "VERVANG_MET_JE_DOWNLOAD_KEY"
+
+---
+# Instana Agent ConfigMap (optionele configuratie)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: instana-agent
+  namespace: instana-agent
+data:
+  configuration.yaml: |
+    # Instana agent configuratie
+    com.instana.plugin.openshift:
+      enabled: true
+    com.instana.plugin.kubernetes:
+      enabled: true
+    
+    # Python auto-instrumentation
+    com.instana.plugin.python:
+      enabled: true
+      
+    # PostgreSQL monitoring
+    com.instana.plugin.postgresql:
+      enabled: true
+
+---
+# Instana Agent DaemonSet
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: instana-agent
+  namespace: instana-agent
+  labels:
+    app.kubernetes.io/name: instana-agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: instana-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: instana-agent
+    spec:
+      serviceAccountName: instana-agent
+      hostNetwork: true
+      hostPID: true
+      hostIPC: true
+      containers:
+      - name: instana-agent
+        image: icr.io/instana/agent:latest
+        imagePullPolicy: Always
+        env:
+        # Basis configuratie
+        - name: INSTANA_AGENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: instana-agent
+              key: key
+        - name: INSTANA_DOWNLOAD_KEY
+          valueFrom:
+            secretKeyRef:
+              name: instana-agent
+              key: downloadKey
+        - name: INSTANA_AGENT_ENDPOINT
+          value: "ingress-red-saas.instana.io"
+        - name: INSTANA_AGENT_ENDPOINT_PORT
+          value: "443"
+        
+        # Cluster info
+        - name: INSTANA_ZONE
+          value: "openshift-demo"
+        - name: INSTANA_AGENT_TAGS
+          value: "environment=demo,platform=openshift,purpose=monitoring-comparison"
+        
+        # OpenShift specifiek
+        - name: INSTANA_KUBERNETES_CLUSTER_NAME
+          value: "demo-cluster"
+        
+        # Auto discovery
+        - name: INSTANA_AUTO_PROFILE
+          value: "true"
+        
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: dev
+          mountPath: /dev
+        - name: run
+          mountPath: /run
+        - name: var-run
+          mountPath: /var/run
+        - name: sys
+          mountPath: /sys
+        - name: var-log
+          mountPath: /var/log
+        - name: machine-id
+          mountPath: /etc/machine-id
+        - name: configuration
+          mountPath: /opt/instana/agent/etc/instana/configuration.yaml
+          subPath: configuration.yaml
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: dev
+        hostPath:
+          path: /dev
+      - name: run
+        hostPath:
+          path: /run
+      - name: var-run
+        hostPath:
+          path: /var/run
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: var-log
+        hostPath:
+          path: /var/log
+      - name: machine-id
+        hostPath:
+          path: /etc/machine-id
+      - name: configuration
+        configMap:
+          name: instana-agent
+
+---
+# Service Account voor Instana Agent
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: instana-agent
+  namespace: instana-agent
+
+---
+# ClusterRole voor Instana Agent
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: instana-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - componentstatuses
+  - endpoints
+  - events
+  - namespaces
+  - nodes
+  - pods
+  - replicationcontrollers
+  - resourcequotas
+  - services
+  - persistentvolumes
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - deploymentconfigs
+  verbs:
+  - get
+  - list
+  - watch
+
+---
+# ClusterRoleBinding voor Instana Agent
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: instana-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: instana-agent
+subjects:
+- kind: ServiceAccount
+  name: instana-agent
+  namespace: instana-agent
