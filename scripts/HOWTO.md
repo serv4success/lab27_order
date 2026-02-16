@@ -145,9 +145,11 @@ oc port-forward -n demo-instana svc/frontend 3000:80
 
 ```bash
 # Installeer dependencies
-pip install -r scripts/requirements.txt
+cd /Users/dannyroefflaer/Git/serv4success/lab27_order
+pip3 install -r scripts/requirements.txt
 
 # Run mixed load scenario (10 minuten)
+cd /Users/dannyroefflaer/Git/serv4success/lab27_order
 python3 scripts/load-generator.py \
   --url https://frontend-demo-instana.apps.ocp02.llab27.be \
   --scenario mixed \

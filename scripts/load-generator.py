@@ -43,6 +43,7 @@ class LoadGenerator:
         try:
             response = requests.post(
                 f"{self.base_url}/api/orders",
+                headers={'Content-Type': 'application/json'},
                 json=order_data,
                 timeout=10
             )
