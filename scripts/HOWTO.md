@@ -60,12 +60,16 @@ Deze demo laat zien:
 
 ```bash
 # Clone deze repository
-cd instana-demo
+cd demo-instana
 
 # Login op OpenShift
-oc login --token=<your-token> --server=<your-server>
+oc login --web
 
-# Deploy applicatie
+# Deploy applicatie 
+-> to avoid problems with docker builds on my MACOS ARM for the AMD target patform, I build the images on openshift (S2I) and pushed them in the local registry
+-> for the progres database, I created a working deployment taking into account security context of openshift 
+
+
 chmod +x scripts/deploy.sh
 ./scripts/deploy.sh
 ```
@@ -97,14 +101,13 @@ oc get pods -n instana-agent
 
 ```bash
 # Check of alle services draaien
-oc get pods -n instana-demo
+oc get pods -n demo-instana
 
 # Haal frontend URL op
-oc get route frontend -n instana-demo
+oc get route frontend -n demo-instana
 
 # Open in browser
-# https://<frontend-url>
-```
+https://frontend-demo-instana.apps.ocp02.llab27.be
 
 ## 📊 Demo Scenario's
 
@@ -113,7 +116,7 @@ oc get route frontend -n instana-demo
 #### OpenShift Native
 ```bash
 # Bekijk Prometheus metrics
-oc port-forward -n instana-demo svc/frontend 3000:80
+oc port-forward -n demo-instana svc/frontend 3000:80
 # Open http://localhost:3000/metrics
 
 # Bekijk OpenShift monitoring
@@ -146,13 +149,13 @@ pip install -r scripts/requirements.txt
 
 # Run mixed load scenario (10 minuten)
 python3 scripts/load-generator.py \
-  --url https://<frontend-url> \
+  --url https://frontend-demo-instana.apps.ocp02.llab27.be \
   --scenario mixed \
   --duration 10
 
 # Of run spike traffic (2 minuten)
 python3 scripts/load-generator.py \
-  --url https://<frontend-url> \
+  --url https://frontend-demo-instana.apps.ocp02.llab27.be \
   --scenario spike \
   --duration 2 \
   --concurrency 25
@@ -172,7 +175,7 @@ python3 scripts/load-generator.py \
 **Test een order flow:**
 ```bash
 # Maak een order via UI of API
-curl -X POST https://<frontend-url>/api/orders \
+curl -X POST https://frontend-demo-instana.apps.ocp02.llab27.be>/api/orders \
   -H "Content-Type: application/json" \
   -d '{
     "customer_name": "Jan de Vries",
@@ -208,7 +211,7 @@ curl -X POST https://<frontend-url>/api/orders \
 ```bash
 # Run error scenario
 python3 scripts/load-generator.py \
-  --url https://<frontend-url> \
+  --url https://frontend-demo-instana.apps.ocp02.llab27.be \
   --scenario error \
   --duration 3
 ```
@@ -216,10 +219,10 @@ python3 scripts/load-generator.py \
 #### OpenShift Native Approach:
 ```bash
 # Check Prometheus alerts
-oc get prometheusrule -n instana-demo
+oc get prometheusrule -n demo-instana
 
 # View logs manually
-oc logs -n instana-demo -l app=order-service --tail=100
+oc logs -n demo-instana -l app=order-service --tail=100
 
 # Check metrics
 # Moet handmatig correleren tussen:
@@ -357,22 +360,22 @@ sum(rate(orders_total{status="failed"}[5m]))
 ### Pods starten niet
 ```bash
 # Check events
-oc get events -n instana-demo --sort-by='.lastTimestamp'
+oc get events -n demo-instana --sort-by='.lastTimestamp'
 
 # Check pod logs
-oc logs -n instana-demo <pod-name>
+oc logs -n demo-instana <pod-name>
 
 # Check resources
-oc describe pod -n instana-demo <pod-name>
+oc describe pod -n demo-instana <pod-name>
 ```
 
 ### Database connectie issues
 ```bash
 # Check if postgres is running
-oc get pods -n instana-demo -l app=postgres
+oc get pods -n demo-instana -l app=postgres
 
 # Test connection
-oc exec -n instana-demo deployment/order-service -- \
+oc exec -n demo-instana deployment/order-service -- \
   python -c "import psycopg2; psycopg2.connect(host='postgres', database='orders', user='admin', password='password123')"
 ```
 
@@ -400,7 +403,7 @@ oc get secret -n instana-agent instana-agent -o yaml
 
 ```bash
 # Verwijder applicatie
-oc delete project instana-demo
+oc delete project demo-instana
 
 # Verwijder Instana agent
 oc delete project instana-agent

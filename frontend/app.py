@@ -96,7 +96,7 @@ HTML_TEMPLATE = """
 <body>
     <div class="container">
         <h1>🛍️ Instana Demo - Order System</h1>
-        <p>Deze applicatie demonstreert monitoring met <strong>Instana</strong> vs <strong>OpenShift Native</strong></p>
+        <p>This application shows observability with <strong>Instana</strong> vs <strong>OpenShift Native</strong></p>
         
         <form id="orderForm">
             <div class="form-group">

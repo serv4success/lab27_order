@@ -7,7 +7,7 @@ Een complete, production-ready demo applicatie om Instana te vergelijken met Ope
 ## 📁 Project Structuur
 
 ```
-instana-demo/
+demo-instana/
 ├── README.md                          # Volledige documentatie
 ├── QUICKSTART.md                      # 15-minuten setup guide
 ├── DEMO_SCRIPT.md                     # Presentatie script (30 min)
@@ -187,8 +187,8 @@ Toont: Performance degradation detection
 
 ### Pods starten niet?
 ```bash
-oc describe pod -n instana-demo <pod>
-oc logs -n instana-demo <pod>
+oc describe pod -n demo-instana <pod>
+oc logs -n demo-instana <pod>
 ```
 
 ### Instana agent niet zichtbaar?
@@ -199,7 +199,7 @@ oc logs -n instana-agent -l app.kubernetes.io/name=instana-agent
 
 ### Database errors?
 ```bash
-oc exec -n instana-demo deployment/postgres -- psql -U admin -d orders -c "SELECT 1"
+oc exec -n demo-instana deployment/postgres -- psql -U admin -d orders -c "SELECT 1"
 ```
 
 ## 🎯 Success Criteria
