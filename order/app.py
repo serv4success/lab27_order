@@ -2,9 +2,10 @@
 Order Service - Demonstratie voor Instana vs OpenShift Monitoring
 Bevat zowel automatische Instana instrumentatie als handmatige Prometheus metrics
 """
-from flask import Flask, request, jsonify
 # Added for Instana because no (full) auto-discovery for this application or related services
-from instana.instrumentation.flask import FlaskInstrumentation
+import instana
+
+from flask import Flask, request, jsonify
 import requests
 import psycopg2
 import os
@@ -18,8 +19,6 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 
 app = Flask(__name__)
-# Added for Instana because no (full) auto-discovery for this application or related services
-FlaskInstrumentation(app)
 
 # Prometheus metrics setup
 metrics = PrometheusMetrics(app)
