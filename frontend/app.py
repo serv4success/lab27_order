@@ -3,6 +3,8 @@ Frontend Service - Entry point voor de applicatie
 Demonstreert end-to-end tracing door meerdere services
 """
 from flask import Flask, request, jsonify, render_template_string
+from instana.instrumentation.flask import FlaskInstrumentation
+FlaskInstrumentation(app)
 import requests
 import os
 import time

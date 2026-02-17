@@ -3,6 +3,8 @@ Payment Service - Simuleerd payment processing
 Demonstreert externe API calls en distributed tracing
 """
 from flask import Flask, request, jsonify
+from instana.instrumentation.flask import FlaskInstrumentation
+FlaskInstrumentation(app)
 import time
 import random
 import requests
