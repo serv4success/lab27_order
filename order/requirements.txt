@@ -3,4 +3,4 @@ psycopg2-binary==2.9.7
 requests==2.31.0
 prometheus-client==0.19.0
 prometheus-flask-exporter==0.23.0
-instana==2.0.3
+instana==1.18.0
