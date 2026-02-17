@@ -3,8 +3,8 @@ Order Service - Demonstratie voor Instana vs OpenShift Monitoring
 Bevat zowel automatische Instana instrumentatie als handmatige Prometheus metrics
 """
 from flask import Flask, request, jsonify
+# Added for Instana because no (full) auto-discovery for this application or related services
 from instana.instrumentation.flask import FlaskInstrumentation
-FlaskInstrumentation(app)
 import requests
 import psycopg2
 import os
@@ -16,10 +16,10 @@ from datetime import datetime
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
 from prometheus_flask_exporter import PrometheusMetrics
 
-# Instana - automatische instrumentatie (geen extra code nodig!)
-# Instana detecteert Flask, psycopg2, requests automatisch
 
 app = Flask(__name__)
+# Added for Instana because no (full) auto-discovery for this application or related services
+FlaskInstrumentation(app)
 
 # Prometheus metrics setup
 metrics = PrometheusMetrics(app)

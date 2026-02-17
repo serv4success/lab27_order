@@ -3,8 +3,8 @@ Payment Service - Simuleerd payment processing
 Demonstreert externe API calls en distributed tracing
 """
 from flask import Flask, request, jsonify
+# Added for Instana because no (full) auto-discovery for this application or related services
 from instana.instrumentation.flask import FlaskInstrumentation
-FlaskInstrumentation(app)
 import time
 import random
 import requests
@@ -13,6 +13,8 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
+# Added for Instana because no (full) auto-discovery for this application or related services
+FlaskInstrumentation(app)
 
 # Prometheus metrics
 payment_counter = Counter(
