@@ -2,9 +2,10 @@
 Frontend Service - Entry point for the application
 Shows end-to-end tracing for different services
 """
-from flask import Flask, request, jsonify, render_template_string
 # Added for Instana because no (full) auto-discovery for this application or related services
-from instana.instrumentation.flask import FlaskInstrumentation
+import instana
+
+from flask import Flask, request, jsonify, render_template_string
 import requests
 import os
 import time
@@ -14,8 +15,6 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
-# Added for Instana because no (full) auto-discovery for this application or related services
-FlaskInstrumentation(app)
 
 ORDER_SERVICE_URL = os.getenv('ORDER_SERVICE_URL', 'http://order-service:8080')
 
