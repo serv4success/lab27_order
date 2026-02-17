@@ -1,5 +1,7 @@
 ---
-# Instana Agent Namespace
+# I DID THIS CONFIGURATION VIA THE INSTANA OPERATOR
+
+# Instana Agent Namespace -> did it via CLI
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -8,20 +10,7 @@ metadata:
     app.kubernetes.io/name: instana-agent
 
 ---
-# Instana Agent Secret
-apiVersion: v1
-kind: Secret
-metadata:
-  name: instana-agent
-  namespace: instana-agent
-type: Opaque
-stringData:
-  # Vervang met je eigen Instana keys
-  key: PZKwmTpfRb2E6ortpeqmNA
-  downloadKey: PZKwmTpfRb2E6ortpeqmNA
-
----
-# Instana Agent ConfigMap (optionele configuratie)
+# Instana Agent ConfigMap (optionele configuratie) 
 apiVersion: v1
 kind: ConfigMap
 metadata:
