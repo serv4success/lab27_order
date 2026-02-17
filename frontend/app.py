@@ -1,6 +1,6 @@
 """
-Frontend Service - Entry point voor de applicatie
-Demonstreert end-to-end tracing door meerdere services
+Frontend Service - Entry point for the application
+Shows end-to-end tracing for different services
 """
 from flask import Flask, request, jsonify, render_template_string
 from instana.instrumentation.flask import FlaskInstrumentation
@@ -29,7 +29,7 @@ request_duration = Histogram(
     buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
 )
 
-# Simple HTML template voor demo
+# Simple HTML template for demo
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -121,8 +121,8 @@ HTML_TEMPLATE = """
         <div class="monitoring-info">
             <h3>📊 Monitoring Details:</h3>
             <ul>
-                <li><strong>Instana:</strong> Automatische tracing, dependency mapping, geen code wijzigingen nodig</li>
-                <li><strong>OpenShift:</strong> Handmatige metrics, zie /metrics endpoint</li>
+                <li><strong>Instana:</strong> Automatische tracing, dependency mapping, geen code changes necessary </li>
+                <li><strong>OpenShift:</strong> Manual metrics, see /metrics endpoint</li>
                 <li><strong>Services:</strong> Frontend → Order Service → Payment Service → Database</li>
             </ul>
             <p><a href="/orders">View all orders</a> | <a href="/metrics">Prometheus metrics</a></p>
@@ -187,7 +187,7 @@ def health():
 @app.route('/api/orders', methods=['POST'])
 def create_order_api():
     """
-    Frontend API endpoint - routes naar order service
+    Frontend API endpoint - routes to order service
     Instana traceert deze hele chain automatisch:
     Frontend → Order Service → Payment Service → Database
     """
