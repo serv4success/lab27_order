@@ -1,67 +1,113 @@
 ---
-apiVersion: apps/v1
 kind: Deployment
+apiVersion: apps/v1
 metadata:
-  name: frontend
-  namespace: instana-demo
+  name: order-service
+  namespace: demo-instana
   labels:
-    app: frontend
-    tier: frontend
+    app: order-service
+    tier: backend
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: frontend
+      app: order-service
   template:
     metadata:
       labels:
-        app: frontend
-        tier: frontend
+        app: order-service
+        tier: backend
         version: v1
       annotations:
-        instana/monitored: "true"
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/metrics"
+        instana/monitored: 'true'
+        prometheus.io/path: /metrics
+        prometheus.io/port: '8080'
+        prometheus.io/scrape: 'true'
     spec:
       containers:
-      - name: frontend
-        image: quay.io/your-org/frontend:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 3000
-          name: http
-        env:
-        - name: ORDER_SERVICE_URL
-          value: "http://order-service:8080"
-        - name: INSTANA_SERVICE_NAME
-          value: "frontend"
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: frontend
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: '5432'
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: PAYMENT_SERVICE_URL
+              value: 'http://payment-service:8080'
+            - name: INSTANA_SERVICE_NAME
+              value: order-service
+            - name: INSTANA_AGENT_HOST
+              value: instana-agent-headless.instana-agent.svc
+            - name: INSTANA_AGENT_PORT
+              value: '42699'
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: Always
+          terminationMessagePolicy: File
+          image: 'image-registry.openshift-image-registry.svc:5000/demo-instana/order:latest'
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
-  namespace: instana-demo
+  namespace: demo-demo
   labels:
     app: frontend
 spec:
@@ -80,7 +126,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: frontend
-  namespace: instana-demo
+  namespace: demo-instana
   labels:
     app: frontend
 spec:
@@ -98,7 +144,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: frontend-monitor
-  namespace: instana-demo
+  namespace: demo-instana
   labels:
     app: frontend
 spec:
