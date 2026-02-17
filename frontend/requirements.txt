@@ -2,4 +2,4 @@ Flask==3.0.0
 requests==2.31.0
 prometheus-client==0.19.0
 prometheus-flask-exporter==0.23.0
-instana==1.19.0
+instana==3.4.2
