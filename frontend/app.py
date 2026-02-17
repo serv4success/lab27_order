@@ -122,7 +122,7 @@ HTML_TEMPLATE = """
         <div class="monitoring-info">
             <h3>📊 Monitoring Details:</h3>
             <ul>
-                <li><strong>Instana:</strong> Automatische tracing, dependency mapping, geen code changes necessary </li>
+                <li><strong>Instana:</strong> Automatic dependency mapping, minimal code changes necessary </li>
                 <li><strong>OpenShift:</strong> Manual metrics, see /metrics endpoint</li>
                 <li><strong>Services:</strong> Frontend → Order Service → Payment Service → Database</li>
             </ul>
