@@ -17,8 +17,8 @@ metadata:
 type: Opaque
 stringData:
   # Vervang met je eigen Instana keys
-  key: "VERVANG_MET_JE_INSTANA_AGENT_KEY"
-  downloadKey: "VERVANG_MET_JE_DOWNLOAD_KEY"
+  key: PZKwmTpfRb2E6ortpeqmNA
+  downloadKey: PZKwmTpfRb2E6ortpeqmNA
 
 ---
 # Instana Agent ConfigMap (optionele configuratie)
@@ -82,7 +82,7 @@ spec:
               name: instana-agent
               key: downloadKey
         - name: INSTANA_AGENT_ENDPOINT
-          value: "ingress-red-saas.instana.io"
+          value: "ingress-blue-saas.instana.io"
         - name: INSTANA_AGENT_ENDPOINT_PORT
           value: "443"
         
@@ -94,7 +94,7 @@ spec:
         
         # OpenShift specifiek
         - name: INSTANA_KUBERNETES_CLUSTER_NAME
-          value: "demo-cluster"
+          value: "OCP02"
         
         # Auto discovery
         - name: INSTANA_AUTO_PROFILE
